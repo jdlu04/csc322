@@ -82,7 +82,7 @@
 #     user.tokens += int(amount)
 
 ##########################################
-# 5. Submit text
+# 6. Submit text
 ##########################################
 #   After user inputs text, the amount of words
 #   are calculated and subtracted from a user's tokens
@@ -98,7 +98,7 @@
 #           LLMCorrection(words)
 
 ##########################################
-# 6. LLM Correction Functionality
+# 7. LLM Correction Functionality
 ##########################################
 #     Run text through LLM API or rule-based grammar checker
 #     Return corrected version of text 
