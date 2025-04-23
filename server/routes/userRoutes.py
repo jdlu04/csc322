@@ -77,3 +77,19 @@ def updateUser(id):
             {"error": "Invalid user ID format"}
         ), 400
 
+### delete
+@user_bp.route('/users/<id>', methods=['DELETE'])
+def delete_user(id):
+    try:
+        result = collection.delete_one({"_id": ObjectId(id)})
+        if result.deleted_count == 1:
+            return jsonify(
+                {"message": "User deleted"}
+            ), 200
+        return jsonify(
+            {"error": "User not found"}
+        ), 404
+    except:
+        return jsonify(
+            {"error": "Invalid user ID format"}
+        ), 400
