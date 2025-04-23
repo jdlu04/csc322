@@ -2,6 +2,8 @@ from flask import Flask
 from dotenv import load_dotenv
 from routes.userRoutes import user_bp 
 
+## I need to make a blue blueprint
+
 ## we're .env for any global variable we'll be using throughout our server
 load_dotenv() 
 
