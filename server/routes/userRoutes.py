@@ -38,7 +38,8 @@ def postUser():
     ## we need to make sure all datais returned as JSON --> jsonify 
     ## return it in dictinary
     return jsonify({
-        "message": " User created", "id": str(result.inserted_id)
+        "message": "User created", 
+        "id": str(result.inserted_id)
         }), 200
 
 @user_bp.route('/users', methods=['GET'])
@@ -50,14 +51,29 @@ def getUser():
         user["_id"] = str(user["_id"])
     return jsonify(users), 200
 
+## it's required to know the users id.... we should instead probably
+## have it be by name... I can fix this in the morning...
 @user_bp.route('/users/<id>', methods=['PATCH'])
 ## we can update a user based on id
 def updateUser(id):
     data = request.json
     try:
+        result = collection.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": data}
+        )
 
-        
+        if result.modifiedCount == 1:
+            return jsonify({
+                "message": "user updated"
+            }), 200
 
-        return
+        else:
+            return jsonify(
+                {"error": "Invalid user ID format"}
+            ), 400
     except: 
-        return
+        return jsonify(
+            {"error": "Invalid user ID format"}
+        ), 400
+
