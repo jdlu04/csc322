@@ -1,9 +1,10 @@
-from werkzeug.security import generate_password_hash
+
 from flask import Blueprint, request, jsonify
+from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
 import os
-from dotenv import load_dotenv
+###from dotenv import load_dotenv <-- we may need this for free, paid, super users.. 
 
 ## initiali free users
 ## they sohuld have a username 
@@ -42,6 +43,11 @@ def postUser():
         "id": str(result.inserted_id)
         }), 200
 
+
+### we're just getting all users here so this isn't ideal
+### this I can change tmr but it will allow us to at least verify if we've established a connection
+### NEXT and flask
+
 @user_bp.route('/users', methods=['GET'])
 def getUser():
     users = list(collection.find())
@@ -58,24 +64,24 @@ def getUser():
 def updateUser(id):
     data = request.json
     try:
+        object_id = ObjectId(id)
         result = collection.update_one(
-            {"_id": ObjectId(id)},
+            {"_id": object_id},
             {"$set": data}
         )
 
-        if result.modifiedCount == 1:
+        if result.modified_count == 1:
             return jsonify({
                 "message": "user updated"
             }), 200
-
-        else:
-            return jsonify(
-                {"error": "Invalid user ID format"}
-            ), 400
-    except: 
+        
+    except InvalidId: 
         return jsonify(
             {"error": "Invalid user ID format"}
         ), 400
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 ### delete
 @user_bp.route('/users/<id>', methods=['DELETE'])
@@ -89,7 +95,13 @@ def delete_user(id):
         return jsonify(
             {"error": "User not found"}
         ), 404
-    except:
+    
+    except InvalidId:
         return jsonify(
             {"error": "Invalid user ID format"}
         ), 400
+    
+    except Exception as error:
+        return jsonify({
+            "error": str(error)
+        }), 500
