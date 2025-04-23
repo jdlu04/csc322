@@ -9,6 +9,9 @@ load_dotenv()
 
 app= Flask (__name__)
 
+## we gotta use the bp here
+app.register_blueprint(user_bp)
+
 ## connecting to our mongo database, need to reachout to the team about setting up db users
 ## maybe we should've done this is in node.js after all?? --I'm  just being a baby ignore me - yared
 

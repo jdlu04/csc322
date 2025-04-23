@@ -1,3 +1,4 @@
+from werkzeug.security import generate_password_hash
 from flask import Blueprint, request, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
@@ -12,6 +13,8 @@ from dotenv import load_dotenv
 ## the should be modified via system a user can't change their role themselves
 ## they can upgrade to a paid user though
 
+## blueprint 
+user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... initializer
 
 ## for now I'll use a hard coded connection
 
@@ -19,3 +22,42 @@ mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
 collection = db["free_users"]
+
+
+##CRUD: 
+## POST --> 200, 400
+## GET --> 200, 500
+## UPDATE --> 200, 400
+## DELETE --> 200, 400
+
+@user_bp.route('/users', methods=['POST'])
+def postUser():
+    data = request.json
+    result = collection.insert_one(data)
+    
+    ## we need to make sure all datais returned as JSON --> jsonify 
+    ## return it in dictinary
+    return jsonify({
+        "message": " User created", "id": str(result.inserted_id)
+        }), 200
+
+@user_bp.route('/users', methods=['GET'])
+def getUser():
+    users = list(collection.find())
+
+    ## we're setting ther user id as a string
+    for user in users:
+        user["_id"] = str(user["_id"])
+    return jsonify(users), 200
+
+@user_bp.route('/users/<id>', methods=['PATCH'])
+## we can update a user based on id
+def updateUser(id):
+    data = request.json
+    try:
+
+        
+
+        return
+    except: 
+        return
