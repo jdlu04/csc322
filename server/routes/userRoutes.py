@@ -18,6 +18,8 @@ import os
 user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... initializer
 
 ## for now I'll use a hard coded connection
+## actually this might not be bad... cuz we can have
+## roles a s parameter then update that parameter based on free, paid, super like we discussed
 
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
@@ -80,8 +82,8 @@ def updateUser(id):
             {"error": "Invalid user ID format"}
         ), 400
     
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception as error:
+        return jsonify({"error": str(error)}), 500
 
 ### delete
 @user_bp.route('/users/<id>', methods=['DELETE'])
@@ -102,6 +104,6 @@ def delete_user(id):
         ), 400
     
     except Exception as error:
-        return jsonify({
-            "error": str(error)
-        }), 500
+        return jsonify(
+            {"error": str(error)}
+        ), 500

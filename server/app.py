@@ -12,25 +12,6 @@ app= Flask (__name__)
 ## we gotta use the bp here
 app.register_blueprint(user_bp)
 
-## connecting to our mongo database, need to reachout to the team about setting up db users
-## maybe we should've done this is in node.js after all?? --I'm  just being a baby ignore me - yared
-
-'''
-mongoURL = os.getenv("DB_URL")
-client = MongoClient(mongoURL)
-db = client["TIFIdb"]
-collection = db["free_users"]
-'''
-
-## end points ##
-
-## setting up a basic route at home directory
-## I'll be removing this soon
-@app.route("/") 
-def home():
-    return"home endpoint" ## I just wanna see if this it works
-
-
 ## initializer 
 if __name__ == '__main__':
     ## we're enabling debugging mode here 
