@@ -4,7 +4,7 @@ from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
 import os
-###from dotenv import load_dotenv <-- we may need this for free, paid, super users.. 
+###from dotenv import load_dotenv 
 
 ## initiali free users
 ## they sohuld have a username 
