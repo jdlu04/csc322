@@ -6,7 +6,6 @@
 }
 
 @theme {
-   --color-*: initial;
    --color-greyBG: #FBFBFB;
    --color-accentGreen: #83BA70;
    --color-textGrey: #666666;

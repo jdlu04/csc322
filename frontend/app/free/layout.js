@@ -4,7 +4,7 @@ export default function FreeLayout({ children }) {
   return (
     <div>
         <nav className='h-10 bg-greyBG'>
-            <Link href='/paid'>Home</Link>
+            <Link href='/paid' className='text-black'>Home</Link>
             {/*logout placeholder*/}
         </nav>
         <main> 
