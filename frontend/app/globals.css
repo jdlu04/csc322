@@ -7,7 +7,7 @@
 
 @theme {
    --color-*: initial;
-   --color-background: #FBFBFB;
+   --color-greyBG: #FBFBFB;
    --color-accentGreen: #83BA70;
    --color-textGrey: #666666;
    --color-boxBorder: #C9C9C9;
