@@ -1,16 +1,15 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function FreeLayout({ children }) {
   return (
     <div>
-        <nav className='h-10 bg-greyBG'>
-            <Link href='/paid' className='text-black'>Home</Link>
-            {/*logout placeholder*/}
-        </nav>
-        <main> 
-            {children}
-        </main>
+      <nav className="h-10 bg-greyBG">
+        <Link href="/paid" className="text-black">
+          Home
+        </Link>
+        {/*logout placeholder*/}
+      </nav>
+      <main>{children}</main>
     </div>
-    
   );
 }
