@@ -1,7 +1,6 @@
-import os, ollama
+import os, ollama, json, requests
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-
 
 def select_file():
     Tk().withdraw()
@@ -26,7 +25,6 @@ Here is a text you need to edit:
 Please: 
 1. Correct all spelling and grammar mistakes. Do not change the sentence structure or word choice. 
 2. Return 1 JSON object which contains only the corrected text in the format {{"corrected": "your corrected text here"}}
-3. Return 1 JSON object listing ALL of the spelling and grammar changes you made to the original text as single words in the format: {{"original": , "corrected"}}
 """
 
 def run_editor(input_text):
@@ -36,9 +34,31 @@ def run_editor(input_text):
         response = ollama.generate(model=model, prompt=prompt)
         generated_text = response.get("response", "")
         print(f"Original Text: \n{input_text}\n")
-        print(generated_text)
+        #print(generated_text)   # returns as a string -> maybe use JSONIFY to turn into JSON object
+        # print(type(generated_text))
+        #json_object = json.loads(generated_text)
+        fixing_Json(generated_text)
+        
+        #return generated_text
     except Exception as e:
         print("An error occurred:", str(e))
+
+def fixing_Json(text):
+    try:
+        json_start = text.find("{")
+        json_end = text.rfind("}")
+        if json_start !=1 and json_end != -1:
+            json_string = text[json_start:json_end+1]
+            json_object = json.dumps(json_string, indent=4)
+            with open("sample.json", "w") as outfile:
+                outfile.write(json_object)
+            print(json_string)
+        else:
+            print("No valid JSON found")
+            return None
+    except Exception as e:
+        print("Error extracting JSON:", e)
+        return None
 
 def selection():
     print("Started")
@@ -46,12 +66,12 @@ def selection():
     if option == "1":
         print("Selected - 1 | Input text")
         entered_text = input("Enter text: ")
-        run_editor(entered_text)
+        return run_editor(entered_text)
     elif option == "2":
         print("Selected - 2 | Upload text")
         input_file = select_file()
         input_text = read_file(input_file)
-        run_editor(input_text)
+        return run_editor(input_text)
     else:
         print("Invalid Option Selected")
 
