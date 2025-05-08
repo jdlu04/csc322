@@ -49,9 +49,9 @@ def fixing_Json(text):
         json_end = text.rfind("}")
         if json_start !=1 and json_end != -1:
             json_string = text[json_start:json_end+1]
-            json_object = json.dumps(json_string, indent=4)
+            json_object = json.loads(json_string)
             with open("sample.json", "w") as outfile:
-                outfile.write(json_object)
+                json.dump(json_object, outfile, indent=4)
             print(json_string)
         else:
             print("No valid JSON found")
