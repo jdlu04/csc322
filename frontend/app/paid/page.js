@@ -14,6 +14,5 @@ export default function page() {
             Submit
         </button>    
     </div>
-    
   )
 }
