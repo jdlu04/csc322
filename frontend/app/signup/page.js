@@ -12,32 +12,39 @@ export default function page() {
   const [userType, setUserType] = useState(null);
   const router = useRouter();
 
-  const handleClick = () => {
-    if (userType == "Free User") {
-      router.push("/free");
-    } else if (userType == "Paid User") {
-      router.push("/paid");
-    }
-  };
-
   const handleSignup = async () => {
-    const response = await fetch("http://127.0.0.1:5000/users", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        userType,
-      }),
-    });
-    const result = await response.json();
-    if (response.ok) {
-      handleClick();
-    } else {
-      console.error("Signup failed:", result);
-      alert("Signup failed. Try again.");
+    if (!username || !password || !userType) {
+      alert("Please fill in all fields");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://127.0.0.1:5000/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          password,
+          userType,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        if (userType == "Free User") {
+          router.push("/free");
+        } else if (userType == "Paid User") {
+          router.push("/paid");
+        }
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error("Signin error:", error);
+      alert("Signin failed. Try again.");
     }
 
     console.log("Username: ", username);
@@ -48,6 +55,7 @@ export default function page() {
   const handleDropdown = (selected) => {
     setUserType(selected);
   };
+
   return (
     <div className="h-screen">
       <div className="h-3/4 border rounded-2xl bg-white border-boxBorder text-lg flex flex-col items-center justify-center w-full">
