@@ -2,6 +2,9 @@ import os, ollama, json, requests
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def select_file():
     Tk().withdraw()
@@ -83,6 +86,20 @@ def selection():
     else:
         print("Invalid Option Selected")
 
+def import_Json():
+    uri = os.getenv("DB_URL")
+    client = MongoClient(uri, tls=True, tlsAllowInvalidCertificates=True)
+    db = client["TIFIdb"]
+    collection = db["textupload"]
+
+    with open("response.json") as f:
+        data = json.load(f)
+    if isinstance(data,list):
+        collection.insert_many(data)
+    else:
+        collection.insert_one(data)
+
 # Run the full pipeline
 if __name__ == "__main__":
     selection()
+    import_Json()
