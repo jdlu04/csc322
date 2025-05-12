@@ -1,6 +1,7 @@
 from flask import Flask
 from dotenv import load_dotenv
 from routes.userRoutes import user_bp 
+from flask_cors import CORS
 
 ## I need to make a blue blueprint
 
@@ -8,7 +9,7 @@ from routes.userRoutes import user_bp
 load_dotenv() 
 
 app= Flask (__name__)
-
+CORS(app)
 ## we gotta use the bp here
 app.register_blueprint(user_bp)
 
