@@ -3,11 +3,11 @@ import Link from "next/link";
 export default function FreeLayout({ children }) {
   return (
     <div>
-      <nav className="h-10 bg-greyBG border-b border-textGrey">
-        <Link href="/paid" className="text-black">
+      <nav className="h-10 bg-greyBG border-b border-textGrey text-black">
+        <Link href="/paid">
           Home
         </Link>
-        {/*logout placeholder*/}
+        <Link href="/login">Logout</Link>
       </nav>
       <main>{children}</main>
     </div>
