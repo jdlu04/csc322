@@ -9,7 +9,7 @@ export default function page() {
   const handleClick = () => {
     router.push("/free");
   };
-
+  
   return (
     <div className="h-screen">
       <div className="h-3/4 border rounded-2xl bg-white border-boxBorder text-lg flex flex-col items-center justify-center w-full">
