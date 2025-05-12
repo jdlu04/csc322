@@ -1,6 +1,6 @@
 import React from "react";
-import CorrectionTextBox from "../components/CorrectionTextBox";
-import CorrectionCheckbox from "../components/CorrectionCheckbox";
+import CorrectionTextBox from "../../components/CorrectionTextBox";
+import CorrectionCheckbox from "../../components/CorrectionCheckbox";
 export default function page() {
   return (
     <div className="w-screen h-screen bg-greyBG">

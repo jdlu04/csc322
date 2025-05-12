@@ -7,6 +7,7 @@ export default function RootLayout({ children }) {
         <Link href="/paid">Home</Link>
         <Link href="/paid/file">Files</Link>
         <Link href="/paid/token">Tokens</Link>
+        <Link href="/login">Logout</Link>
       </nav>
       <main>{children}</main>
     </div>
