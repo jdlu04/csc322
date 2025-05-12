@@ -107,3 +107,26 @@ def delete_user(id):
         return jsonify(
             {"error": str(error)}
         ), 500
+
+#login endpoint
+#http://127.0.0.1:5000/login
+@user_bp.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    user = collection.find_one({"username": username})
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if user["password"] != password:
+        return jsonify({"error": "Incorrect password"}), 401
+
+    user["_id"] = str(user["_id"])
+    user.pop("password") 
+
+    return jsonify({
+        "message": "Login successful",
+        "user": user
+    }), 200
