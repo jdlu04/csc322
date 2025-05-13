@@ -3,7 +3,9 @@ from flask import Blueprint, request, jsonify
 from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
+from flask_jwt_extended import create_access_token
 import os
+
 ###from dotenv import load_dotenv 
 
 ## initiali free users
@@ -24,7 +26,7 @@ user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... init
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
-collection = db["free_users"]
+collection = db["users"]
 
 
 ##CRUD: 
@@ -123,10 +125,14 @@ def login():
     if user["password"] != password:
         return jsonify({"error": "Incorrect password"}), 401
 
-    user["_id"] = str(user["_id"])
-    user.pop("password") 
+    access_token = create_access_token(identity=str(user["_id"]))
 
     return jsonify({
         "message": "Login successful",
-        "user": user
+        "access_token": access_token
     }), 200
+
+
+@user_bp.route('/collab', methods=['POST'])
+def collab():
+    pass
