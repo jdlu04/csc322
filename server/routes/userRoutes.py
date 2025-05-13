@@ -142,6 +142,7 @@ def login():
     }), 200
 
 @user_bp.route('/collab', methods=['POST'])
+@jwt_required()
 def collab():
     ##pass
     data = request.json
@@ -158,3 +159,27 @@ def collab():
 
     inviter_id = get_jwt_identity()
     inviter_obj_id = ObjectId(inviter_id)
+
+    try:
+        file = files_collection.find_one({"_id": file_obj_id})
+        if not file:
+            return jsonify({"error": "File not found"}), 404
+
+        if file.get("owner_id") != inviter_obj_id:
+            return jsonify({"error": "Only the owner can invite users"}), 403
+
+        invitee = users_collection.find_one({"username": invitee_username})
+        if not invitee:
+            return jsonify({"error": "Invitee user not found"}), 404
+
+        invitee_id = invitee["_id"]
+
+        files_collection.update_one(
+            {"_id": file_obj_id},
+            {"$addToSet": {"collaborators": invitee_id}}
+        )
+
+        return jsonify({"message": "User successfully invited"}), 201
+
+    except PyMongoError as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
