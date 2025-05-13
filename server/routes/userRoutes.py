@@ -26,8 +26,7 @@ user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... init
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
-collection = db["users"]
-
+collection = db["free_users"]
 
 ##CRUD: 
 ## POST --> 200, 400
@@ -128,10 +127,12 @@ def login():
     access_token = create_access_token(identity=str(user["_id"]))
 
     return jsonify({
-        "message": "Login successful",
-        "access_token": access_token
+            "message": "Login successful",
+            "access_token": access_token,
+            "user": {
+            "userType": user.get("userType")
+        }
     }), 200
-
 
 @user_bp.route('/collab', methods=['POST'])
 def collab():
