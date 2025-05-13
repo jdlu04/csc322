@@ -64,6 +64,7 @@ export default function page() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            type="password"
           />
         </div>
         <button
