@@ -17,7 +17,7 @@ CORS(app)
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
-##print(secrets.token_hex(32))
+##print(secrets.token_hex(32)) <-- give your JWT_SECRET_KEY
 ## we gotta use the bp here
 app.register_blueprint(user_bp)
 

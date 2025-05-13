@@ -3,7 +3,12 @@ from flask import Blueprint, request, jsonify
 from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import (
+    create_access_token, 
+    jwt_required, 
+    get_jwt_identity
+)
+from pymongo.errors import PyMongoError
 import os
 
 ###from dotenv import load_dotenv 
@@ -126,6 +131,7 @@ def login():
 
     access_token = create_access_token(identity=str(user["_id"]))
 
+    ## super important that we also get the user's type upon login for JWT
     return jsonify({
             "message": "Login successful",
             "access_token": access_token,
