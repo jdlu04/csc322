@@ -1,7 +1,6 @@
 ## Added for better formatting in LLM endpoints
 
 import json, ollama
-
 def generate_prompt(text):
     """Create the prompt to send to the LLM."""
     return f"""
