@@ -32,6 +32,7 @@ mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
 collection = db["free_users"]
+files_collection = db["files"]
 
 ##CRUD: 
 ## POST --> 200, 400
@@ -142,4 +143,18 @@ def login():
 
 @user_bp.route('/collab', methods=['POST'])
 def collab():
-    pass
+    ##pass
+    data = request.json
+    file_id = data.get('file_id')
+    invitee_username = data.get('invitee_username')
+
+    if not file_id or not invitee_username:
+        return jsonify({"error": "Missing file_id or invitee_username"}), 400
+
+    try:
+        file_obj_id = ObjectId(file_id)
+    except:
+        return jsonify({"error": "Invalid file_id format"}), 400
+
+    inviter_id = get_jwt_identity()
+    inviter_obj_id = ObjectId(inviter_id)
