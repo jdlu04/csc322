@@ -1,5 +1,6 @@
 
-from flask import Blueprint, request, jsonify
+# Amanda Note, added session from flask, This will allow login sessions
+from flask import Blueprint, request, jsonify, session
 from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
@@ -40,17 +41,23 @@ collection = db["users"]
 ## UPDATE --> 200, 400
 ## DELETE --> 200, 400
 
+# Amanda Note # Updated to automatically add 10 tokens
+# To users who signed up
 @user_bp.route('/users', methods=['POST'])
 def postUser():
     data = request.json
+
+    # Automatically give 10 tokens
+    data["tokens"] = 10
+
     result = collection.insert_one(data)
-    
-    ## we need to make sure all datais returned as JSON --> jsonify 
-    ## return it in dictinary
+
     return jsonify({
         "message": "User created", 
-        "id": str(result.inserted_id)
-        }), 200
+        "id": str(result.inserted_id),
+        "tokens": data["tokens"]
+    }), 200
+
 
 
 ### we're just getting all users here so this isn't ideal
@@ -130,6 +137,11 @@ def login():
     if user["password"] != password:
         return jsonify({"error": "Incorrect password"}), 401
 
+    ## Amanda Testing Tokens ##
+    session["user_id"] = str(user["_id"])
+
+    user["_id"] = str(user["_id"])
+    user.pop("password") 
     access_token = create_access_token(identity=str(user["_id"]))
 
     ## super important that we also get the user's type upon login for JWT
@@ -183,6 +195,7 @@ def collab():
 
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+    
 @user_bp.route('/files', methods=['GET'])
 def files():
     ##pass
@@ -214,7 +227,15 @@ def files():
 
 @user_bp.route('/files/share', methods=['POST'])
 def files_share():
-    pass
+    data = request.json
+    file_name = data.get('file_name')
+    ##content = data.get('content')
+
+    ## error checking: users need to have the file name 
+    if not file_name:
+        return jsonify({"error": "File name is required"}), 400 
+
+
 
 @user_bp.route('/files/inviteResponse', methods=['POST'])
 def invite_response():
