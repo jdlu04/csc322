@@ -183,3 +183,15 @@ def collab():
 
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+
+@user_bp.route('/files/share', methods=['POST'])
+def files_share():
+    pass
+
+@user_bp.route('/files/inviteResponse', methods=['POST'])
+def invite_response():
+    pass
+
+@user_bp.route('/files', methods=['GET'])
+def files():
+    pass
