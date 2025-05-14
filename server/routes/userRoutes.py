@@ -3,7 +3,14 @@ from flask import Blueprint, request, jsonify
 from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
+from flask_jwt_extended import (
+    create_access_token, 
+    jwt_required, 
+    get_jwt_identity
+)
+from pymongo.errors import PyMongoError
 import os
+
 ###from dotenv import load_dotenv 
 
 ## initiali free users
@@ -24,8 +31,8 @@ user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... init
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
-collection = db["users"]
 
+collection = db["users"]
 
 ##CRUD: 
 ## POST --> 200, 400
@@ -123,10 +130,68 @@ def login():
     if user["password"] != password:
         return jsonify({"error": "Incorrect password"}), 401
 
-    user["_id"] = str(user["_id"])
-    user.pop("password") 
+    access_token = create_access_token(identity=str(user["_id"]))
 
+    ## super important that we also get the user's type upon login for JWT
     return jsonify({
-        "message": "Login successful",
-        "user": user
+            "message": "Login successful",
+            "access_token": access_token,
+            "user": {
+            "userType": user.get("userType")
+        }
     }), 200
+
+@user_bp.route('/collab', methods=['POST'])
+@jwt_required()
+def collab():
+    ##pass
+    data = request.json
+    file_id = data.get('file_id')
+    invitee_username = data.get('invitee_username')
+
+    if not file_id or not invitee_username:
+        return jsonify({"error": "Missing file_id or invitee_username"}), 400
+
+    try:
+        file_obj_id = ObjectId(file_id)
+    except:
+        return jsonify({"error": "Invalid file_id format"}), 400
+
+    inviter_id = get_jwt_identity()
+    inviter_obj_id = ObjectId(inviter_id)
+
+    try:
+        file = files_collection.find_one({"_id": file_obj_id})
+        if not file:
+            return jsonify({"error": "File not found"}), 404
+
+        if file.get("owner_id") != inviter_obj_id:
+            return jsonify({"error": "Only the owner can invite users"}), 403
+
+        invitee = users_collection.find_one({"username": invitee_username})
+        if not invitee:
+            return jsonify({"error": "Invitee user not found"}), 404
+
+        invitee_id = invitee["_id"]
+
+        files_collection.update_one(
+            {"_id": file_obj_id},
+            {"$addToSet": {"collaborators": invitee_id}}
+        )
+
+        return jsonify({"message": "User successfully invited"}), 201
+
+    except PyMongoError as e:
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+
+@user_bp.route('/files/share', methods=['POST'])
+def files_share():
+    pass
+
+@user_bp.route('/files/inviteResponse', methods=['POST'])
+def invite_response():
+    pass
+
+@user_bp.route('/files', methods=['GET'])
+def files():
+    pass
