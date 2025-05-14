@@ -7,14 +7,15 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from llm.llmCorrect import run_editor
 from dotenv import load_dotenv
-import ollama
+import ollama, re
 
 # Hashed out to test for /llm-correct endpoint
 load_dotenv()
 mongoURL = os.getenv("DB_URL")
-client = MongoClient(mongoURL)
+client = MongoClient(mongoURL, tlsAllowInvalidCertificates=True)
 db = client["TIFIdb"]
-users_col = db["free_users"] # temporarily using since there are 2 DBs for users? 
+# users_col = db["free_users"] # temporarily using since there are 2 DBs for users? 
+token_col = db["tokens"]
 text_col = db["textupload"] # temp db for holding uploaded LLM text -> will be cleaning/updating
 
 # CRUD:
@@ -31,19 +32,39 @@ llm_bp = Blueprint('llm_bp', __name__)
 @llm_bp.route('/submit-text', methods=['POST'])
 def text():
     # Need to get the username
-    username = request.form.get('username')
-    if not username:
-        return jsonify({"Error":"username required"}), 400
-    # Fetching username from MongoDB & checking for username
-    users = users_col.find_one(users_col.find({"username":username}))
+    data = request.get_json()
+    username = data['username']
+    input_text = data['text']
+
+    if not data or 'username' not in data:
+        return jsonify({"Error":"Username required"}), 400
+
+    user = token_col.find_one({"username":username})
     if not user:
         return jsonify({"Error":"User not found"}), 404
-    for user in users:
-        user["_id"]=str(user["_id"])
+    if 'text' not in data:
+        return jsonify({"Error":"Text required"}), 400
     
+    # Get the word-token conversion
+    token_count = len(re.findall(r'\S+', input_text))
+    # Check token_col db for the user's tokenBalance
+    avaliable_tokens = user.get("tokenBalance", 0)
+    # Return _id for the user -> unique identifier; need to convert to string
+    user['_id'] = str(user['_id'])
 
-    data = request.json
-    text = data.get("text")
+    if token_count > avaliable_tokens:
+        return jsonify({
+            "Error":"Insufficient tokens",
+            "required_tokens":token_count,
+            "avaliable_tokens":avaliable_tokens
+        }), 403
+    return jsonify({
+        "username":username,
+        "userId":user['_id'],
+        "text":input_text, 
+        "avaliable_tokens":avaliable_tokens,
+        "token_count":token_count
+    }), 200
 
 #@llm_bp.route('/self-correct', methods=['POST'])
 
