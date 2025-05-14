@@ -34,6 +34,7 @@ client = MongoClient(mongoURL)
 db = client["TIFIdb"]
 
 collection = db["users"]
+file_text_col = db["savetexts"]
 
 ##CRUD: 
 ## POST --> 200, 400
@@ -197,14 +198,14 @@ def collab():
         return jsonify({"error": "Database error", "details": str(e)}), 500
     
 @user_bp.route('/files', methods=['GET'])
+@jwt_required()
 def files():
-    ##pass
     user_id = get_jwt_identity()
 
     try:
         user_obj_id = ObjectId(user_id)
 
-        files = list(files_collection.find({
+        files = list(file_text_col.find({
             "$or": [
                 {"owner_id": user_obj_id},
                 {"collaborators": user_obj_id}
@@ -220,18 +221,17 @@ def files():
     
     except Exception as e:
         return jsonify({
-            "error": "Failed to retrieve files", "details": str(e)
+            "error": "Failed to retrieve files",
+            "details": str(e)
         }), 500
     
-
-
 @user_bp.route('/files/share', methods=['POST'])
+@jwt_required()
 def files_share():
     data = request.json
     file_name = data.get('file_name')
     content = data.get('content')
 
-    ## error checking: users need to have the file name 
     if not file_name:
         return jsonify({"error": "File name is required"}), 400 
     
@@ -240,12 +240,12 @@ def files_share():
     file_doc = {
         "file_name": file_name,
         "owner_id": ObjectId(owner_id),
-        "content": content or "", ## either the files have text or they are empty 
-        "collaborators": [] ## we're pass the users that can collab onto a file into an array.
+        "content": content or "",
+        "collaborators": []
     }
 
     try:
-        result = files_collection.insert_one(file_doc)
+        result = file_text_col.insert_one(file_doc)
         return jsonify({
             "message": "File shared!",
             "file_id": str(result.inserted_id)
@@ -253,9 +253,46 @@ def files_share():
 
     except PyMongoError as e:
         return jsonify({
-            "error": "Failed to share file", "details": str(e)
+            "error": "Failed to share file",
+            "details": str(e)
         }), 500
 
 @user_bp.route('/files/inviteResponse', methods=['POST'])
+@jwt_required()
 def invite_response():
-    pass
+    data = request.json
+    file_id = data.get('file_id')
+    response = data.get('response')
+
+    if not file_id or response not in ("accept", "reject"):
+        return jsonify({"error": "file_id and valid response are required"}), 400
+
+    user_id = get_jwt_identity()
+
+    try:
+        file_obj_id = ObjectId(file_id)
+        user_obj_id = ObjectId(user_id)
+
+        file = files_collection.find_one({"_id": file_obj_id})
+        if not file:
+            return jsonify({"error": "File not found"}), 404
+        
+        if user_obj_id not in file.get("pending_invites", []):
+            return jsonify({"error": "You have no pending invite for this file"}), 403
+
+        if response == "accept":
+            update = {
+                "$pull": {"pending_invites": user_obj_id},
+                "$addToSet": {"collaborators": user_obj_id}
+            }
+            message = "Invite accepted"
+        else:
+            update = {"$pull": {"pending_invites": user_obj_id}}
+            message = "Invite rejected"
+
+        files_collection.update_one({"_id": file_obj_id}, update)
+
+        return jsonify({"message": message}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Something went wrong", "details": str(e)}), 500

@@ -15,7 +15,6 @@ collection = db["free_users"]
 
 
 # Display Token Balance
-# Display Token Balance
 @tokens_bp.route("/api/tokens", methods=["GET"])
 def get_token_balance():
     user_id = session.get("user_id")  # or JWT logic
