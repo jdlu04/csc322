@@ -1,7 +1,7 @@
 from flask import Flask, session
 from dotenv import load_dotenv
 from routes.userRoutes import user_bp 
-from server.routes.correctionRoutes import llm_bp
+from routes.correctionRoutes import correction_bp
 from flask_cors import CORS
 from routes.tokens import tokens_bp
 from flask_jwt_extended import JWTManager
@@ -29,7 +29,7 @@ CORS(app, supports_credentials=True)
 ## we gotta use the bp here
 app.register_blueprint(user_bp)
 app.register_blueprint(tokens_bp)
-app.register_blueprint(llm_bp)
+app.register_blueprint(correction_bp)
 
 ## initializer 
 if __name__ == '__main__':
