@@ -229,13 +229,32 @@ def files():
 def files_share():
     data = request.json
     file_name = data.get('file_name')
-    ##content = data.get('content')
+    content = data.get('content')
 
     ## error checking: users need to have the file name 
     if not file_name:
         return jsonify({"error": "File name is required"}), 400 
+    
+    owner_id = get_jwt_identity()
 
+    file_doc = {
+        "file_name": file_name,
+        "owner_id": ObjectId(owner_id),
+        "content": content or "", ## either the files have text or they are empty 
+        "collaborators": [] ## we're pass the users that can collab onto a file into an array.
+    }
 
+    try:
+        result = files_collection.insert_one(file_doc)
+        return jsonify({
+            "message": "File shared!",
+            "file_id": str(result.inserted_id)
+        }), 201
+
+    except PyMongoError as e:
+        return jsonify({
+            "error": "Failed to share file", "details": str(e)
+        }), 500
 
 @user_bp.route('/files/inviteResponse', methods=['POST'])
 def invite_response():
