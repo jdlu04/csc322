@@ -45,7 +45,7 @@ def text():
     data = request.json
     text = data.get("text")
 
-@llm_bp.route('/self-correct', methods=['POST'])
+#@llm_bp.route('/self-correct', methods=['POST'])
 
 # Endpoint for sending text to LLM and returns corrections for review
 @llm_bp.route('/llm-correct', methods=['POST'])
@@ -60,8 +60,7 @@ def review_text():
     return jsonify(result), 200
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
-@llm_bp.route('/llm-correct/accept', methods=['POST'])
+#@llm_bp.route('/llm-correct/accept', methods=['POST'])
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
-@llm_bp.route('/llm-correct/reject', methods=['POST'])
-
+#@llm_bp.route('/llm-correct/reject', methods=['POST'])

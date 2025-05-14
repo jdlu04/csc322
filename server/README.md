@@ -13,3 +13,7 @@ How to run the server:
 5. Run the file:
     - python app.py; OR
     - python3 app.py
+6. If you are getting a "MissingModule"-type error, try redoing step 4 & 5 with the dev-requirements.txt file instead:
+    - pip install -r dev-requirements.txt OR
+    - pip3 install -r dev-requirements.txt
+    This is error may be due to different modules being used between each person's venv
