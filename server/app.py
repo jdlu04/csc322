@@ -1,7 +1,7 @@
 from flask import Flask
 from dotenv import load_dotenv
 from routes.userRoutes import user_bp 
-from routes.llmRoutes import llm_bp
+from server.routes.correctionRoutes import llm_bp
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 import secrets

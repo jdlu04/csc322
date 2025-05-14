@@ -31,8 +31,8 @@ user_bp = Blueprint('user_bp', __name__) ## gotta initialize it like the... init
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
-collection = db["free_users"]
-files_collection = db["files"]
+
+collection = db["users"]
 
 ##CRUD: 
 ## POST --> 200, 400

@@ -9,6 +9,7 @@ from llm.llmCorrect import run_editor
 from dotenv import load_dotenv
 import ollama, re
 
+
 # Hashed out to test for /llm-correct endpoint
 load_dotenv()
 mongoURL = os.getenv("DB_URL")
@@ -24,12 +25,12 @@ text_col = db["textupload"] # temp db for holding uploaded LLM text -> will be c
 # UPDATE --> 200, 400
 # DELETE --> 200, 400
 
-llm_bp = Blueprint('llm_bp', __name__)
+correction_bp = Blueprint('correction_bp', __name__)
 
 # Endpoint for submitting text or file (should handle token deduction or rejection) -> not complete yet 
 # Description: Free/Paid user submits text or file -> meaning need to establish a connection with userDB
 # Logic: get the userId info stuff thing -> check for token count -> etc
-@llm_bp.route('/submit-text', methods=['POST'])
+@correction_bp.route('/submit-text', methods=['POST'])
 def text():
     # Need to get the username
     data = request.get_json()
@@ -66,10 +67,10 @@ def text():
         "token_count":token_count
     }), 200
 
-#@llm_bp.route('/self-correct', methods=['POST'])
+#@correction_bp.route('/self-correct', methods=['POST'])
 
 # Endpoint for sending text to LLM and returns corrections for review
-@llm_bp.route('/llm-correct', methods=['POST'])
+@correction_bp.route('/llm-correct', methods=['POST'])
 def review_text():
     data = request.json
     text = data.get("text")
@@ -81,19 +82,19 @@ def review_text():
     return jsonify(result), 200
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
-# @llm_bp.route('/llm-correct/accept', methods=['POST'])
+# @correction_bp.route('/llm-correct/accept', methods=['POST'])
 # def llm_accept():
 #    data = request.json
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
-#@llm_bp.route('/llm-correct/reject', methods=['POST'])
+#@correction_bp.route('/llm-correct/reject', methods=['POST'])
 
 # Endpoint for saving wrongly flagged word as "correct" --> ?
-# @llm_bp.route('/llm-correction/save-as-correct', methods=['POST'])
+# @correction_bp.route('/llm-correction/save-as-correct', methods=['POST'])
 # def save_correct():
 
 # Endpoint for saving file 
-@llm_bp.route('/save-file', methods=['POST'])
+@correction_bp.route('/save-file', methods=['POST'])
 def saveFile():
     data = request.json()
     username = data['username']
