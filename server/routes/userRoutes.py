@@ -183,6 +183,34 @@ def collab():
 
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
+@user_bp.route('/files', methods=['GET'])
+def files():
+    ##pass
+    user_id = get_jwt_identity()
+
+    try:
+        user_obj_id = ObjectId(user_id)
+
+        files = list(files_collection.find({
+            "$or": [
+                {"owner_id": user_obj_id},
+                {"collaborators": user_obj_id}
+            ]
+        }))
+
+        for f in files:
+            f["_id"] = str(f["_id"])
+            f["owner_id"] = str(f["owner_id"])
+            f["collaborators"] = [str(uid) for uid in f.get("collaborators", [])]
+
+        return jsonify(files), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": "Failed to retrieve files", "details": str(e)
+        }), 500
+    
+
 
 @user_bp.route('/files/share', methods=['POST'])
 def files_share():
@@ -190,8 +218,4 @@ def files_share():
 
 @user_bp.route('/files/inviteResponse', methods=['POST'])
 def invite_response():
-    pass
-
-@user_bp.route('/files', methods=['GET'])
-def files():
     pass
