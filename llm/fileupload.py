@@ -1,6 +1,10 @@
 import os, ollama, json, requests
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def select_file():
     Tk().withdraw()
@@ -19,40 +23,45 @@ def generate_prompt(text):
     return f"""
 You are a text editor that corrects only spelling and grammar. 
 
-Here is a text you need to edit: 
-{text}
+Instructions: 
+- Correct any spelling and grammar mistakes
+- Do NOT change the sentence structure or word choice. 
+- Return ONLY a JSON object like this: {{"corrected": "your corrected text here"}}
 
-Please: 
-1. Correct all spelling and grammar mistakes. Do not change the sentence structure or word choice. 
-2. Return 1 JSON object which contains only the corrected text in the format {{"corrected": "your corrected text here"}}
+Text to correct: "{text}"
 """
 
 def run_editor(input_text):
     prompt = generate_prompt(input_text)
     model = "llama3.2:latest"
+    temperature = 0
     try:
         response = ollama.generate(model=model, prompt=prompt)
         generated_text = response.get("response", "")
-        print(f"Original Text: \n{input_text}\n")
+        #print(f"Original Text: \n{input_text}\n")
         #print(generated_text)   # returns as a string -> maybe use JSONIFY to turn into JSON object
         # print(type(generated_text))
         #json_object = json.loads(generated_text)
-        fixing_Json(generated_text)
+        fixing_Json(input_text, generated_text)
         
         #return generated_text
     except Exception as e:
         print("An error occurred:", str(e))
 
-def fixing_Json(text):
+def fixing_Json(original_text, response_text):
+    # Makes a JSON file with both the original & corrected text
     try:
-        json_start = text.find("{")
-        json_end = text.rfind("}")
+        json_start = response_text.find("{")
+        json_end = response_text.rfind("}")
         if json_start !=1 and json_end != -1:
-            json_string = text[json_start:json_end+1]
-            json_object = json.loads(json_string)
-            with open("sample.json", "w") as outfile:
-                json.dump(json_object, outfile, indent=4)
-            print(json_string)
+            json_string = response_text[json_start:json_end+1]
+            response_object = json.loads(json_string)
+            full_text = {
+                "original" : original_text,
+                "corrected" : response_object.get("corrected", "")
+            }
+            with open("response.json", "w") as outfile:
+                json.dump(full_text, outfile, indent=4)
         else:
             print("No valid JSON found")
             return None
@@ -66,15 +75,31 @@ def selection():
     if option == "1":
         print("Selected - 1 | Input text")
         entered_text = input("Enter text: ")
-        return run_editor(entered_text)
+        run_editor(entered_text)
+        return entered_text
     elif option == "2":
         print("Selected - 2 | Upload text")
         input_file = select_file()
         input_text = read_file(input_file)
-        return run_editor(input_text)
+        run_editor(input_text)
+        return input_text
     else:
         print("Invalid Option Selected")
+
+def import_Json():
+    uri = os.getenv("DB_URL")
+    client = MongoClient(uri, tls=True, tlsAllowInvalidCertificates=True)
+    db = client["TIFIdb"]
+    collection = db["textupload"]
+
+    with open("response.json") as f:
+        data = json.load(f)
+    if isinstance(data,list):
+        collection.insert_many(data)
+    else:
+        collection.insert_one(data)
 
 # Run the full pipeline
 if __name__ == "__main__":
     selection()
+    import_Json()
