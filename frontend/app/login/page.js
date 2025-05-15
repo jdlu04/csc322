@@ -3,7 +3,7 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function page() {
+export default function Page() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -20,19 +20,18 @@ export default function page() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          username,
-          password,
-        }),
+        body: JSON.stringify({ username, password }),
       });
 
       const result = await response.json();
 
       if (response.ok) {
         console.log("Login successful:", result.user);
-        
+
         const token = result.access_token;
+
         localStorage.setItem("token", token);
+        localStorage.setItem("username", result.user.username);
 
         if (result.user.userType === "Free User") {
           router.push("/free");
@@ -40,7 +39,7 @@ export default function page() {
           router.push("/paid");
         }
       } else {
-        alert(result.error);
+        alert(result.error || "Invalid username or password.");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -75,7 +74,7 @@ export default function page() {
           className="bg-accentGreen w-3/4 h-14 rounded-4xl"
           onClick={handleLogin}
         >
-          <p className="font-semibold">Sign Up</p>
+          <p className="font-semibold">Log In</p>
         </button>
       </div>
       <div className="border my-10 rounded-2xl bg-white border-boxBorder text-lg flex items-center justify-center w-full h-20">

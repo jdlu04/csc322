@@ -1,9 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-//import CorrectionTextBox from "../../components/CorrectionTextBox";
-//import CorrectionCheckbox from "../../components/CorrectionCheckbox";
-//import Statistics from "../../components/Statistics";
 
 export default function Page() {
   const [stats, setStats] = useState(null);
@@ -45,14 +42,20 @@ export default function Page() {
   }, []);
 
   const llmCorrection = async () => {
-    console.log("llm function");
+    const username = localStorage.getItem("username");
+
+    if (!username) {
+      alert("Username not found in local storage.");
+      return;
+    }
+
     try {
-      const response = await fetch("http://127.0.0.1:5000/llm-correct", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/llm-correct`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text: correctedText }),
+        body: JSON.stringify({ username, text: originalText }),
       });
 
       if (!response.ok) {
@@ -62,15 +65,12 @@ export default function Page() {
         return;
       }
 
-      const result = await response.json();
-
-      setCorrectedText(result.corrected);
-      setOriginalText(result.original);
-
-      console.log("Original:", result.original);
-      console.log("Corrected:", result.corrected);
+      const corrected = await response.text(); // ✅ expecting a plain string
+      setCorrectedText(corrected);
+      console.log("Corrected Text:", corrected);
     } catch (error) {
-      console.error(error);
+      console.error("Correction failed:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 
@@ -114,7 +114,7 @@ export default function Page() {
         )}
       </div>
 
-      {/* Checkbox row */}
+      {/* Correction Options */}
       <div className="flex gap-6 mb-4">
         <label className="flex items-center font-semibold">
           <input type="checkbox" checked readOnly className="mr-2" />
@@ -126,7 +126,7 @@ export default function Page() {
         </label>
       </div>
 
-      {/* Text box */}
+      {/* Input Text Box */}
       <div className="border rounded-lg bg-white overflow-hidden mb-6">
         <div className="flex justify-between border-b px-4 py-2 font-semibold text-sm">
           <span>Original</span>
@@ -140,21 +140,30 @@ export default function Page() {
         />
         <div className="flex justify-between text-xs text-gray-600 px-4 py-2 border-t">
           <div className="space-x-2">
-            <span className="cursor-pointer hover:underline">
-              + Blacklisted Words
-            </span>
+            <span className="cursor-pointer hover:underline">+ Blacklisted Words</span>
             <span className="cursor-pointer hover:underline">Upload Text</span>
           </div>
           <span className="cursor-pointer hover:underline">Save Text</span>
         </div>
       </div>
 
-      {/* Submit button */}
-      <div className="flex justify-center">
-        <button onClick={llmCorrection} className="bg-accentGreen transition px-10 py-2 rounded-full font-semibold text-white">
+      {/* Submit Button */}
+      <div className="flex justify-center mb-6">
+        <button
+          onClick={llmCorrection}
+          className="bg-green-500 hover:bg-green-600 transition px-10 py-2 rounded-full font-semibold text-white"
+        >
           Submit
         </button>
       </div>
+
+      {/* Corrected Output */}
+      {correctedText && (
+        <div className="border rounded-lg bg-white p-4">
+          <h2 className="font-semibold text-sm mb-2">Corrected Output</h2>
+          <pre className="whitespace-pre-wrap text-sm">{correctedText}</pre>
+        </div>
+      )}
     </div>
   );
 }

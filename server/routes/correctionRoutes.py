@@ -75,35 +75,40 @@ def text():
 # Endpoint for sending text to LLM and returns corrections for review
 @correction_bp.route('/llm-correct', methods=['POST'])
 def review_text():
-    data = request.get_json()
-    username = data.get("username")
-    text = data.get("text")
-    # CONSIDERING ADDING USERNAME SO IT MATCHES THE RESULTING TEXTUPLOAD DB STUFF
-    # username = data['username']
-    if not data or 'username' not in data:
-        return jsonify({"Error":"Username required"}), 400
-    
-    user = users_col.find_one({"username":username})
-    if not user:
-        return jsonify({"Error":"User not found"}), 404  
+    try:
+        data = request.get_json()
+        username = data.get("username")
+        input_text = data.get("text")
 
-    if not text:
-        return jsonify({"Error":"Text required"}), 400
-    result = run_editor(text)
+        if not username:
+            return "Username required", 400
 
-    original = result.get("original")
-    corrected = result.get("corrected")
+        if not input_text:
+            return "Text required", 400
 
-    text = {
-        "userId":user["_id"],
-        "username":user["username"],
-        "original":original,
-        "corrected":corrected
-    }
+        user = users_col.find_one({"username": username})
+        if not user:
+            return "User not found", 404
 
-    llm_col.insert_one(text)
+        corrected = run_editor(input_text)
 
-    return jsonify(result), 200
+        if not isinstance(corrected, str):
+            return "LLM engine must return a string", 500
+
+        text_doc = {
+            "userId": user["_id"],
+            "username": username,
+            "original": input_text,
+            "corrected": corrected
+        }
+
+        llm_col.insert_one(text_doc)
+
+        return corrected, 200, {'Content-Type': 'text/plain'}
+
+    except Exception as e:
+        print("ERROR in /llm-correct:", e)
+        return f"Server error: {str(e)}", 500, {'Content-Type': 'text/plain'}
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
 @correction_bp.route('/llm-correct/update', methods=['POST'])

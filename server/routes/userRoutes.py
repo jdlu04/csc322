@@ -123,9 +123,13 @@ def delete_user(id):
 
 #login endpoint
 #http://127.0.0.1:5000/login
-@user_bp.route('/login', methods=['POST'])
+@user_bp.route('/login', methods=['POST', 'OPTIONS'])
 def login():
-    data = request.json
+    if request.method == 'OPTIONS':
+        # Flask doesn't auto-handle CORS preflight for individual routes unless explicitly handled
+        return '', 200
+
+    data = request.get_json()
     username = data.get("username")
     password = data.get("password")
 
@@ -136,18 +140,18 @@ def login():
     if user["password"] != password:
         return jsonify({"error": "Incorrect password"}), 401
 
-    ## Amanda Testing Tokens ##
     session["user_id"] = str(user["_id"])
 
     user["_id"] = str(user["_id"])
-    user.pop("password") 
+    user.pop("password")
+
     access_token = create_access_token(identity=str(user["_id"]))
 
-    ## super important that we also get the user's type upon login for JWT
     return jsonify({
-            "message": "Login successful",
-            "access_token": access_token,
-            "user": {
+        "message": "Login successful",
+        "access_token": access_token,
+        "user": {
+            "username": user.get("username"),
             "userType": user.get("userType")
         }
     }), 200
