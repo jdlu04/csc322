@@ -1,6 +1,35 @@
+'use client'
 import React from "react";
 
 export default function page() {
+  const handleClick = async (token) => {
+    const access_token = localStorage.getItem("token");
+    
+    try {
+      const response = await fetch("http://127.0.0.1:5000/api/tokens/award", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${access_token}`
+        },
+        body: JSON.stringify({
+          amount: token
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log("Added:", value)
+        console.log("New Balance:", result.new_balance)
+      } else {
+        console.error(result.error);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+    
+  }
   return (
     <div className="bg-greyBG w-screen h-screen text-black">
       <h1>Purchase Tokens</h1>
@@ -13,7 +42,7 @@ export default function page() {
         <div className="h-80 w-1/2 border rounded-b-lg bg-white">
           <div className="inline-flex justify-between w-full">
             <p>$1</p>
-            <button className="bg-accentGreen"> 
+            <button className="bg-accentGreen" onClick={() => handleClick(10)}> 
               10
             </button>
           </div>
