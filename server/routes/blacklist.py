@@ -44,7 +44,6 @@ def approve_blacklist():
         return jsonify({"error": "unauthorized"}), 403 
     
     ## if they're a super user let's just pass in the approved blacklisted word
-
     data = request.get_json()
     word_id = data.get("id")
     result = blacklist_collection.update_one(
@@ -59,7 +58,30 @@ def approve_blacklist():
 
 @blacklist_bp.route('/blacklist/reject', methods=["DELETE"]) ## idk yet
 def reject_blacklist():
-    pass
+    ##pass
+    user_id = get_jwt_identity()
+    user = collection.find_one({"_id": ObjectId(user_id)})
+
+    if user.get("role") != "superuser":
+        return jsonify({"error": "unauthorized"}), 403 
+    
+    ## same concept as approving words just with rejecting them,
+    ## i'll be passing in data via a json request, just to get data and view everything
+    data = request.get_json()
+    word_id = data.get("id") ## I have to grab the id the word is at from our list of pending blacklist words
+
+    ## from their we can jsut update the word at that id from pending to rejected
+    ## looks like a 2 objects, id at word 
+    ## set the status of that word to rejected 
+    result = blacklist_collection.update_one(
+        {"_id": ObjectId(word_id), "status": "pending"},
+        {"$set": {"status": "rejected"}}
+    )
+
+    if result.matched_count == 0:
+        return jsonify({"error": "word not found or already processed"})
+
+    return jsonify({"message": "Word rejected!"}), 200
 
 ## these are words in process of being rejected or added to the blacklist
 @blacklist_bp.route('/blacklist/pending', methods=["GET"]) ## i think it's a get endpoint
