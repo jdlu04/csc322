@@ -2,11 +2,11 @@ from flask import Blueprint, request, jsonify, session
 from bson.errors import InvalidId
 from pymongo import MongoClient
 from bson import ObjectId
-'''from flask_jwt_extended import (
+from flask_jwt_extended import (
     create_access_token, 
     jwt_required, 
     get_jwt_identity
-)'''
+)
 from pymongo.errors import PyMongoError
 import os
 
