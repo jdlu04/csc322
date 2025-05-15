@@ -28,11 +28,30 @@ blacklist_collection = db["blacklist"]
 
 @blacklist_bp.route('/blacklist', methods=["GET"])
 def get_blacklist():
-    pass
+    ##pass
+    approved_words = blacklist_collection.find({"status": "approved"}, {"id": 0, "word": 1})
+    ## what about when there are no black listed words available?
+    return jsonify([entry["word"] for entry in approved_words]), 200
 
 @blacklist_bp.route('/blacklist/approve', methods=["POST"])
 def approve_blacklist():
-    pass
+    user_id = get_jwt_identity()
+    user = collection.find_one({"_id": ObjectId(user_id)})
+
+    ## only superusers can approve 
+    ## anyone else is forbbiden from approving blacklisted word
+    if user.get("role") != "superuser":
+        return jsonify({"error": "unauthorized"}), 403 
+    
+    ## if they're a super user let's just pass in the approved blacklisted word
+
+    data = request.get_json()
+    word_id = data.get("id")
+    result = blacklist_collection.update_one(
+        {"_id": ObjectId(word_id), "status": "pending"},
+        {"$set": {"status": "approved"}}
+    )
+
 
 @blacklist_bp.route('/blacklist/reject', methods=["DELETE"]) ## idk yet
 def reject_blacklist():
