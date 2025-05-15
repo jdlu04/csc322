@@ -26,11 +26,8 @@ def get_token_balance():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    # Check if the user has a "tokens" field in the database
     return jsonify({"tokens": user.get("tokens", 0)})
 
-
-# Add to Token Balance
 @tokens_bp.route("/api/tokens/award", methods=["POST"])
 @jwt_required()
 def award_tokens():
@@ -44,8 +41,7 @@ def award_tokens():
     
     data = request.json
     tokenAmt = data.get("amount")
-    
-    # Log to check if 'amount' is in the request and if it's a valid number
+
     print("Received token amount:", tokenAmt)
     
     if not tokenAmt:
