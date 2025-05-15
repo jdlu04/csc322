@@ -79,7 +79,7 @@ def reject_blacklist():
     )
 
     if result.matched_count == 0:
-        return jsonify({"error": "word not found or already processed"})
+        return jsonify({"error": "Word not found or has already processed"})
 
     return jsonify({"message": "Word rejected!"}), 200
 
