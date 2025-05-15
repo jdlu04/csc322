@@ -59,8 +59,6 @@ def postUser():
         "tokens": data["tokens"]
     }), 200
 
-
-
 ### we're just getting all users here so this isn't ideal
 ### this I can change tmr but it will allow us to at least verify if we've established a connection
 ### NEXT and flask

@@ -17,6 +17,7 @@ app= Flask (__name__)
 CORS(app)
 
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 jwt = JWTManager(app)
 ##print(secrets.token_hex(32)) <-- give your JWT_SECRET_KEY
 app = Flask (__name__)
