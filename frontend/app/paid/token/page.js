@@ -19,7 +19,6 @@ export default function Page() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${access_token}`,
           },
-    
         });
         const result = await response.json();
         
@@ -58,8 +57,8 @@ export default function Page() {
       const result = await response.json();
 
       if (response.ok) {
-        //console.log("Added:", token);
-        //console.log("New Balance:", result.new_balance);
+        console.log("Added:", token);
+        console.log("New Balance:", result.new_balance);
         setBalance(result.new_balance);
         setError(null);
       } else {
