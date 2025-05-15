@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from llm.llmCorrect import run_editor
 from dotenv import load_dotenv
-import ollama, re
+import ollama, re, difflib
 
 
 # Hashed out to test for /llm-correct endpoint
@@ -74,6 +74,8 @@ def text():
 @correction_bp.route('/llm-correct', methods=['POST'])
 def review_text():
     data = request.json
+    # CONSIDERING ADDING USERNAME SO IT MATCHES THE RESULTING TEXTUPLOAD DB STUFF
+    # username = data['username']
     text = data.get("text")
 
     if not text:
@@ -83,9 +85,26 @@ def review_text():
     return jsonify(result), 200
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
-# @correction_bp.route('/llm-correct/accept', methods=['POST'])
-# def llm_accept():
-#    data = request.json
+@correction_bp.route('/llm-correct/accept', methods=['POST'])
+def llm_accept():
+    data = request.json
+    # May not need but in case want to return user specific response:
+    # username = data.get["username"]
+    # Assuming you have the resulting JSON from /llm-correct:
+    original = data.get("original", "")
+    corrected = data.get("corrected", "")
+    decisions = data.get("decisions", [])
+
+    # original_words = original_text.split()
+    # corrected_words = corrected_text.split()
+    
+    if not original or corrected:
+        return jsonify({"Error":"Missing text"}), 400
+    # Still trying to figure out the implementation -> thinking of using difflib to get the differences
+    # And then using decisions array as what the resulting text should be 
+    # Basically building a "final" text from the accepted changes -> reject would be the opposite
+    pass
+    
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
 #@correction_bp.route('/llm-correct/reject', methods=['POST'])
@@ -97,7 +116,7 @@ def review_text():
 # Endpoint for saving file 
 @correction_bp.route('/save-file', methods=['POST'])
 def saveFile():
-    data = request.json()
+    data = request.get_json()
     username = data['username']
     text = data['text']
 
@@ -105,19 +124,40 @@ def saveFile():
     # Logic: check db["users"] & then userType="Paid User"; if not, then return error
     if not data or 'username' not in data:
         return jsonify({"Error":"Username required"}), 400
+    # sanity check -> Looks up user name in db['users']
     user = users_col.find_one({"username":username})
     if not user:
         return jsonify({"Error":"Username not found"}), 404
     
-    userType = user.get("")
-    
     if not text:
         return jsonify({"Error":"Text required"}), 400
     
+    # Check if userType = Paid
+    if user.get("userType") != "Paid User":
+        return jsonify({"Error": "Access restricted to paid users"}), 403
+    
     token_count = len(re.findall(r'\S+', text))
-    avaliable_tokens = user.get("tokenBalance", 0)
+    avaliable_tokens = user.get("tokens", 0)
     remaining_tokens = avaliable_tokens - token_count
     
     # Check if the required token_count of text and avaliable token count of user difference
     if remaining_tokens < 5:
-        return jsonify({"Error":"Not enough tokens in balance"})
+        return jsonify({"Error":"Not enough tokens in balance"}), 403
+    
+    new_bal = remaining_tokens - 5
+
+    # Update user tokens after deduction
+    users_col.update_one(
+        {"_id": user["_id"]}, 
+        {"$set": {"tokens": new_bal}}
+    )
+
+    text_doc = {
+        "userId":user["_id"],
+        "username":user["username"],
+        "text": text
+    }
+
+    text_col.insert_one(text_doc)
+
+    return jsonify({ "message": "Text document created", "userId": str(user["_id"]), "remainingTokens": new_bal}), 201
