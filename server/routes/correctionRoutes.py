@@ -6,6 +6,7 @@ import sys
 # Needs full system path to access LLM folder -> please lmk if there is a better solution to this
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from llm.llmCorrect import run_editor
+from llm.differences import get_word_diffs
 from dotenv import load_dotenv
 import ollama, re, difflib
 
@@ -105,8 +106,8 @@ def review_text():
     return jsonify(result), 200
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
-@correction_bp.route('/llm-correct/accept', methods=['POST'])
-def llm_accept():
+@correction_bp.route('/llm-correct/update', methods=['POST'])
+def llm_update():
     data = request.get_json()
     username = data.get("username")
     text = data.get("text")
@@ -150,6 +151,16 @@ def llm_accept():
             }), 200
     else:
         return jsonify({"Error": "Update failed or no change detected"}), 500
+
+@correction_bp.route('/llm-correct/approve', methods=['POST'])
+def llm_approve():
+    data = request.get_json()
+    original = data.get("original")
+    corrected = data.get("corrected")
+    
+    diffs = get_word_diffs(original, corrected)
+
+    return jsonify(diffs), 200
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
 # @correction_bp.route('/llm-correct/reject', methods=['POST'])
