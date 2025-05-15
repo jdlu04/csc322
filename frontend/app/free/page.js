@@ -2,6 +2,11 @@ import React from "react";
 import CorrectionTextBox from "../../components/CorrectionTextBox";
 import CorrectionCheckbox from "../../components/CorrectionCheckbox";
 export default function page() {
+  // add the stats endpoints onto the FREE user 
+  /*useEffect(() => {
+
+  })*/
+
   return (
     <div className="w-screen h-screen bg-greyBG">
       <h1 className="text-black"> Text-it Fix-it</h1>
