@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useEffect, useState } from "react";
 //import CorrectionTextBox from "../../components/CorrectionTextBox";
@@ -9,6 +9,8 @@ export default function Page() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [originalText, setOriginalText] = useState("");
+  const [correctedText, setCorrectedText] = useState("");
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -42,6 +44,36 @@ export default function Page() {
     fetchStats();
   }, []);
 
+  const llmCorrection = async () => {
+    console.log("llm function");
+    try {
+      const response = await fetch("http://127.0.0.1:5000/llm-correct", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text: correctedText }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        alert("Something went wrong. See console for details.");
+        return;
+      }
+
+      const result = await response.json();
+
+      setCorrectedText(result.corrected);
+      setOriginalText(result.original);
+
+      console.log("Original:", result.original);
+      console.log("Corrected:", result.corrected);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="w-full min-h-screen bg-[#f9f9f9] px-8 py-6 text-black">
       <h1 className="text-xl font-bold mb-2">Text-it Fix-it</h1>
@@ -63,10 +95,21 @@ export default function Page() {
           <p>{stats.message}</p>
         ) : (
           <div className="flex flex-wrap gap-6 text-sm">
-            <p><span className="font-semibold">Edited Texts:</span> {stats?.correctionsMade ?? 0}</p>
-            <p><span className="font-semibold">Used Tokens:</span> {stats?.tokensUsed ?? 0}</p>
-            <p><span className="font-semibold">Corrections:</span> {stats?.correctionsMade ?? 0}</p>
-            <p><span className="font-semibold">Errors:</span> 0</p>
+            <p>
+              <span className="font-semibold">Edited Texts:</span>{" "}
+              {stats?.correctionsMade ?? 0}
+            </p>
+            <p>
+              <span className="font-semibold">Used Tokens:</span>{" "}
+              {stats?.tokensUsed ?? 0}
+            </p>
+            <p>
+              <span className="font-semibold">Corrections:</span>{" "}
+              {stats?.correctionsMade ?? 0}
+            </p>
+            <p>
+              <span className="font-semibold">Errors:</span> 0
+            </p>
           </div>
         )}
       </div>
@@ -91,11 +134,15 @@ export default function Page() {
         </div>
         <textarea
           className="w-full h-48 p-4 text-sm outline-none resize-none border-t"
-          placeholder="Type or upload text..."
+          value={originalText}
+          onChange={(e) => setOriginalText(e.target.value)}
+          placeholder="Type or paste your text here"
         />
         <div className="flex justify-between text-xs text-gray-600 px-4 py-2 border-t">
           <div className="space-x-2">
-            <span className="cursor-pointer hover:underline">+ Blacklisted Words</span>
+            <span className="cursor-pointer hover:underline">
+              + Blacklisted Words
+            </span>
             <span className="cursor-pointer hover:underline">Upload Text</span>
           </div>
           <span className="cursor-pointer hover:underline">Save Text</span>
@@ -104,7 +151,7 @@ export default function Page() {
 
       {/* Submit button */}
       <div className="flex justify-center">
-        <button className="bg-green-400 hover:bg-green-500 transition px-10 py-2 rounded-full font-semibold text-white">
+        <button onClick={llmCorrection} className="bg-accentGreen transition px-10 py-2 rounded-full font-semibold text-white">
           Submit
         </button>
       </div>
