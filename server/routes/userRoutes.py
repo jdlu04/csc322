@@ -215,9 +215,14 @@ def files():
             f["_id"] = str(f["_id"])
             f["owner_id"] = str(f["owner_id"])
             f["collaborators"] = [str(uid) for uid in f.get("collaborators", [])]
+            f["pending_invites"] = [str(uid) for uid in f.get("pending_invites", [])]
+
+            # ✅ fetch the owner's username instead of email
+            owner = users_col.find_one({"_id": ObjectId(f["owner_id"])})
+            f["owner_username"] = owner.get("username", "Unknown") if owner else "Unknown"
 
         return jsonify(files), 200
-    
+
     except Exception as e:
         return jsonify({
             "error": "Failed to retrieve files",

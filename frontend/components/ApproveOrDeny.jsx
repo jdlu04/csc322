@@ -1,18 +1,36 @@
+'use client';
 import React from "react";
+import { Check, X } from "lucide-react";
 
-export default function ApproveorDeny() {
+export default function ApproveOrDeny({ file, onRespond }) {
   return (
-    <div className="h-10 w-full bg-white justify-between inline-flex border-textGrey text-black">
-      <div className="w-1/3">
-        <p>exampleusersemail@gmail.com</p>
+    <div className="flex justify-between items-center px-4 py-2 text-black w-full">
+      {/* User Email */}
+      <div className="w-1/3 truncate">
+        <p>{file.user}</p>
       </div>
-      <div className="w-1/3">
-        <p>csc322 report</p>
+
+      {/* File Name */}
+      <div className="w-1/3 truncate">
+        <p>{file.name}</p>
       </div>
-      <div className="flex justify-between w-1/5">
-        {/*replace with icons in the future*/}
-        <p>/</p>
-        <p>X</p>
+
+      {/* Actions */}
+      <div className="w-1/5 flex justify-between items-center">
+        <button
+          onClick={() => onRespond(file._id, "accept")}
+          className="text-green-600 hover:text-green-800"
+          aria-label="Accept Invite"
+        >
+          <Check className="w-5 h-5" />
+        </button>
+        <button
+          onClick={() => onRespond(file._id, "reject")}
+          className="text-red-600 hover:text-red-800"
+          aria-label="Reject Invite"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
     </div>
   );
