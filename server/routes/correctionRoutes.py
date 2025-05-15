@@ -103,6 +103,15 @@ def llm_accept():
     # Still trying to figure out the implementation -> thinking of using difflib to get the differences
     # And then using decisions array as what the resulting text should be 
     # Basically building a "final" text from the accepted changes -> reject would be the opposite
+
+    final_text = "i built it with my hopes and dreams"
+
+
+    final_text = {
+        "original": original,
+        "corrected": corrected,
+        "final": final_text
+    }
     pass
     
 
