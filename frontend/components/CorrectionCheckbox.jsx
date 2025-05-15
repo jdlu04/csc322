@@ -2,18 +2,21 @@
 
 import React, { useState } from "react";
 
-export default function CorrectionCheckbox() {
+export default function CorrectionCheckbox({onLLMChange}) {
   const [isSelfChecked, setSelfChecked] = useState(false);
   const [isLLMChecked, setLLMChecked] = useState(false);
 
   const handleLLMChecked = () => {
     setLLMChecked(!isLLMChecked);
     setSelfChecked(false);
+    onLLMChange(true);
   };
 
   const handleSelfChecked = () => {
     setSelfChecked(!isSelfChecked);
     setLLMChecked(false);
+    onLLMChange(false);
+
   };
 
   return (
