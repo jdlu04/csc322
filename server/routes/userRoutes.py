@@ -216,7 +216,6 @@ def files():
             f["owner_id"] = str(f["owner_id"])
             f["collaborators"] = [str(uid) for uid in f.get("collaborators", [])]
             f["pending_invites"] = [str(uid) for uid in f.get("pending_invites", [])]
-            
             owner = users_col.find_one({"_id": ObjectId(f["owner_id"])})
             f["owner_username"] = owner.get("username", "Unknown") if owner else "Unknown"
 
