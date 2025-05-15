@@ -32,6 +32,7 @@ def get_token_balance():
 @tokens_bp.route("/api/tokens/award", methods=["POST"])
 @jwt_required()
 def award_tokens():
+    print("Request JSON:", request.get_json())
     user_id = get_jwt_identity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
@@ -45,7 +46,7 @@ def award_tokens():
 
     print("Received token amount:", tokenAmt)
     
-    if not tokenAmt:
+    if tokenAmt is None:
         return jsonify({"error": "Amount is missing or invalid"}), 422
 
     if not isinstance(tokenAmt, int):  # Ensuring it's an integer

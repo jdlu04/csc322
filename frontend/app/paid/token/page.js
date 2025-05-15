@@ -13,13 +13,12 @@ export default function Page() {
         return;
       }
       try {
-        const response = await fetch("http://127.0.0.1:5000/api/tokens", {
+        const response = await fetch("http://localhost:5000/api/tokens", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${access_token}`,
           },
-    
         });
         const result = await response.json();
         
@@ -58,8 +57,8 @@ export default function Page() {
       const result = await response.json();
 
       if (response.ok) {
-        //console.log("Added:", token);
-        //console.log("New Balance:", result.new_balance);
+        console.log("Added:", token);
+        console.log("New Balance:", result.new_balance);
         setBalance(result.new_balance);
         setError(null);
       } else {

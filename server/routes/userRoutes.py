@@ -195,7 +195,7 @@ def collab():
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
-## FILES Endpoints
+### FILES Endpoints ###
 @user_bp.route('/files', methods=['GET'])
 @jwt_required()
 def files():
@@ -346,3 +346,34 @@ def saveFile():
         "userId": str(user["_id"]), 
         "remainingTokens": new_bal
     }), 201
+
+
+## user statistics endpoint
+@user_bp.route('/stats', methods=["GET"])
+@jwt_required()
+def user_stat_history():
+    user_id = get_jwt_identity()
+
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user = collection.find_one({"_id": ObjectId(user_id)}) ## users 
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user_type = user.get("userType", "Free User")
+
+    if user_type == "Paid User":
+        stats = {
+            "tokensUsed": user.get("tokensUsed", 0),
+            "tokensAvailable": user.get("tokens", 0),
+            "correctionsMade": user.get("correctionsMade", 0)
+        }
+    else:
+        stats = {
+            "message": "Upgrade to a paid account to view full statistics.",
+            "tokensAvailable": user.get("tokens", 0)
+        }
+
+    return jsonify(stats), 200

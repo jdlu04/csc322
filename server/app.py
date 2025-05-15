@@ -15,7 +15,13 @@ load_dotenv()
 app = Flask(__name__)
 
 # gotta allow cors to support frontend URL
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+CORS(
+    app,
+    resources={r"/*": {"origins": "http://localhost:3000"}},
+    supports_credentials=True,
+    methods=["GET", "POST", "DELETE", "PATCH", "PUT"],
+    allow_headers=["Content-Type", "Authorization"]
+)
 
 # JWT secret key
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
@@ -32,5 +38,4 @@ app.register_blueprint(blacklist_bp)
 
 # Initializer for app
 if __name__ == '__main__':
-    # Run Flask app in debug mode for development
-    app.run(debug=True)
+    app.run(debug=True, host="localhost", port=5000)
