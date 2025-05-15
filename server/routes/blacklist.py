@@ -52,6 +52,10 @@ def approve_blacklist():
         {"$set": {"status": "approved"}}
     )
 
+    if result.matched_count == 0:
+        return jsonify({"error": "Word not found or has already been processed"}), 404
+    
+    return jsonify({"message": "Proposed word has been approved"}), 200
 
 @blacklist_bp.route('/blacklist/reject', methods=["DELETE"]) ## idk yet
 def reject_blacklist():
