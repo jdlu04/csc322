@@ -357,7 +357,7 @@ def user_stat_history():
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
 
-    user = collection.find_one({"_id": ObjectId(user_id)})
+    user = collection.find_one({"_id": ObjectId(user_id)}) ## users 
 
     if not user:
         return jsonify({"error": "User not found"}), 404
