@@ -9,6 +9,7 @@ You are a text editor that corrects only spelling and grammar.
 Instructions: 
 - Correct any spelling and grammar mistakes
 - Do NOT change the sentence structure or word choice. 
+- DO NOT add or change any punctuation in the text
 - Return ONLY a JSON object like this: {{"corrected": "your corrected text here"}}
 
 Text to correct: "{text}"
