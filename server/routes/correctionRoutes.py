@@ -151,7 +151,15 @@ def llm_accept():
     else:
         return jsonify({"Error": "Update failed or no change detected"}), 500
 
-    
+@correction_bp.route('/llm-correct/approve', methods=['POST'])
+def llm_approve():
+    data = request.get_json()
+    original = data.get("original")
+    corrected = data.get("corrected")
+
+    diffs = get_word_diffs(original, corrected)
+
+    return jsonify(diffs), 200
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
 # @correction_bp.route('/llm-correct/reject', methods=['POST'])
