@@ -99,7 +99,24 @@ def pending_blacklist():
 @blacklist_bp.route('/blacklist/suggest', methods=["POST"])
 def suggest_blacklist():
     ##pass
-    
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    word = data.get("word", "").strip().lower() ## we're making it lowercase since a suggestion is not case sensitive.
 
+    if not word.isaplpha():
+        return jsonify({"error": "Invalid word"}), 400
+    
+    existing = blacklist_collection.find_one({"word": word})
+
+    if existing:
+        return jsonify({"error": "The word has alreayd been suggested or blacklisted"})
+    
+    blacklist_collection.insert_one({
+        "word": word,
+        "status": "pending",
+        "suggested_by": ObjectId(user_id)
+    })
+
+    return jsonify({"message": "word suggested for blacklist"}), 201
 
 
