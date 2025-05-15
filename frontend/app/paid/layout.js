@@ -1,31 +1,47 @@
 'use client';
 import React from "react";
 import Link from "next/link";
-import { useRouter } from 'next/navigation'; 
+import { useRouter } from 'next/navigation';
 
 export default function Layout({ children }) {
-  const router = useRouter(); 
+  const router = useRouter();
 
-  /// removing the JWT token from local storage 
-  /// redirecting to login page
   const handleLogout = () => {
     localStorage.removeItem("token");
-    router.push("/login");  
+    router.push("/login");
   };
 
   return (
-    <div>
-      <nav className="h-10 bg-accentGreen">
-        <Link href="/paid">Home</Link>
-        <Link href="/paid/file">Files</Link>
-        <Link href="/paid/token">Tokens</Link>
+    <div className="min-h-screen bg-[#f9f9f9]">
+      <nav className="bg-[#A3C585] px-6 py-3 flex items-center justify-between">
+        {/* Left: App Title */}
+        <div className="text-white font-bold text-lg">TIFI</div>
 
+        {/* Right: Navigation and Logout */}
+        <div className="flex items-center space-x-6 text-white font-medium">
+          {/* Navigation Links */}
+          <div className="flex space-x-6">
+            <Link href="/paid" className="hover:underline">Home</Link>
+            <Link href="/paid/file" className="hover:underline">Files</Link>
+            <Link href="/paid/token" className="hover:underline">Tokens</Link>
+          </div>
 
-        <button onClick={handleLogout} className=" text-white px-4 py-2 rounded">
-          Logout
-        </button>
+          {/* Divider */}
+          <div className="w-px h-6 bg-white"></div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="hover:underline"
+          >
+            Log out
+          </button>
+        </div>
       </nav>
-      <main>{children}</main>
+
+      <main className="p-6">
+        {children}
+      </main>
     </div>
   );
 }
