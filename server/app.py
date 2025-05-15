@@ -4,6 +4,7 @@ from routes.userRoutes import user_bp
 from routes.correctionRoutes import correction_bp
 from flask_cors import CORS
 from routes.tokens import tokens_bp
+from routes.blacklist import blacklist_bp
 from flask_jwt_extended import JWTManager
 import secrets
 import os
@@ -24,10 +25,10 @@ jwt = JWTManager(app)
 ## Amanda Token Testing ##
 app.secret_key = "testing"
 
-## Register blueprints for different routes
 app.register_blueprint(user_bp)
 app.register_blueprint(tokens_bp)
 app.register_blueprint(correction_bp)
+app.register_blueprint(blacklist_bp)
 
 # Initializer for app
 if __name__ == '__main__':

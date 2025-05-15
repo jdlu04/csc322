@@ -12,7 +12,7 @@ mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL, tlsAllowInvalidCertificates=True)
 db = client["TIFIdb"]
 user_col = db["users"]
-token_col = db["tokens"] # temp db for tokens
+###token_col = db["tokens"] # temp db for tokens
 # CRUD:
 # POST --> 200, 400
 # GET --> 200, 500
