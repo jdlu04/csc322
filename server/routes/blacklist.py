@@ -56,7 +56,7 @@ def approve_blacklist():
     
     return jsonify({"message": "Proposed word has been approved"}), 200
 
-@blacklist_bp.route('/blacklist/reject', methods=["DELETE"]) ## idk yet
+@blacklist_bp.route('/blacklist/reject', methods=["DELETE"])
 def reject_blacklist():
     ##pass
     user_id = get_jwt_identity()
@@ -86,11 +86,20 @@ def reject_blacklist():
 ## these are words in process of being rejected or added to the blacklist
 @blacklist_bp.route('/blacklist/pending', methods=["GET"]) ## i think it's a get endpoint
 def pending_blacklist():
-    pass
+    ##pass
+    user_id = get_jwt_identity()
+    user = collection.find_one({"_id": ObjectId(user_id)})
+
+    if user.get("role") != "superuser":
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    pending = blacklist_collection.find({"status": "pending"}, {"word": 1})
+    return jsonify([{"word": p["word"], "id": str(p["_id"])} for p in pending]), 200
 
 @blacklist_bp.route('/blacklist/suggest', methods=["POST"])
 def suggest_blacklist():
-    pass
+    ##pass
+    
 
 
 
