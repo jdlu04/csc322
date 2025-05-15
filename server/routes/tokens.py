@@ -3,6 +3,7 @@
 from flask import Blueprint, request, jsonify, session
 from bson import ObjectId
 from pymongo import MongoClient
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import os
 
 tokens_bp = Blueprint("tokens", __name__)
@@ -16,8 +17,9 @@ collection = db["users"]
 
 # Display Token Balance
 @tokens_bp.route("/api/tokens", methods=["GET"])
+@jwt_required()
 def get_token_balance():
-    user_id = session.get("user_id")  # or JWT logic
+    user_id = get_jwt_identity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
 
@@ -31,8 +33,9 @@ def get_token_balance():
 
 # Add to Token Balance
 @tokens_bp.route("/api/tokens/award", methods=["POST"])
+@jwt_required()
 def award_tokens():
-    user_id = session.get("user_id")
+    user_id = get_jwt_identity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
     
@@ -41,10 +44,16 @@ def award_tokens():
         return jsonify({"error": "User not found"}), 404
     
     data = request.json
-    tokenAmt = data.get("amount") 
+    tokenAmt = data.get("amount")
     
-    if not isinstance(tokenAmt, int): # Checks to see if amount is an integer
-        return jsonify({"error": "Invalid amount"}), 400
+    # Log to check if 'amount' is in the request and if it's a valid number
+    print("Received token amount:", tokenAmt)
+    
+    if not tokenAmt:
+        return jsonify({"error": "Amount is missing or invalid"}), 422
+
+    if not isinstance(tokenAmt, int):  # Ensuring it's an integer
+        return jsonify({"error": "Invalid amount, must be an integer"}), 400
     
     # Add the tokens to the user's balance
     current_tokens = user.get("tokens", 0)
@@ -53,15 +62,15 @@ def award_tokens():
     # Update the user's token balance in the database
     collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"tokens": new_total}})
 
-
     return jsonify({"message": "Tokens awarded", "new_balance": new_total}), 200
+
 
 # (Part 2)
 
 # Subtract from Token balance
 @tokens_bp.route("/api/tokens/spend", methods=["POST"])
 def spend_tokens():
-    user_id = session.get("user_id")
+    user_id = get_jwt_idenity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
     
