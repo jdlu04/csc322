@@ -13,6 +13,19 @@ Instructions:
 
 Text to correct: "{text}"
 """
+
+def generate_self(text):
+    return f"""
+    You are a text editor that corrects only spelling and grammar. 
+
+    Instructions: 
+    - Return the Correct any spelling and grammar mistakes
+    - Do NOT change the sentence structure or word choice. 
+    - Return ONLY a JSON object like this: {{"errors": "your corrected text here"}}
+
+    Text to correct: "{text}"
+    """
+
 def run_editor(input_text):
     prompt = generate_prompt(input_text)
     model = "llama3.2:latest"

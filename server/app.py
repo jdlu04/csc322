@@ -5,6 +5,7 @@ from routes.correctionRoutes import correction_bp
 from flask_cors import CORS
 from routes.tokens import tokens_bp
 from flask_jwt_extended import JWTManager
+
 import secrets
 import os
 
