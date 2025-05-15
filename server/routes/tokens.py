@@ -11,7 +11,7 @@ tokens_bp = Blueprint("tokens", __name__)
 mongoURL = os.getenv("DB_URL")
 client = MongoClient(mongoURL)
 db = client["TIFIdb"]
-collection = db["free_users"]
+collection = db["users"]
 
 
 # Display Token Balance
