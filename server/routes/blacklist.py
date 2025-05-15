@@ -26,7 +26,6 @@ blacklist_collection = db["blacklist"]
 
 ## boilerplate for blacklist endpoints
 
-## GET
 @blacklist_bp.route('/blacklist', methods=["GET"])
 def get_blacklist():
     pass

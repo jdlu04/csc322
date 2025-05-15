@@ -64,8 +64,9 @@ def award_tokens():
 
 # Subtract from Token balance
 @tokens_bp.route("/api/tokens/spend", methods=["POST"])
+@jwt_required()
 def spend_tokens():
-    user_id = get_jwt_idenity()
+    user_id = get_jwt_identity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
     
@@ -74,27 +75,19 @@ def spend_tokens():
         return jsonify({"error": "User not found"}), 404
     
     data = request.json
-    tokenAmt = data.get("amount") 
+    tokenAmt = data.get("amount")
     
-    if not isinstance(tokenAmt, int): # Checks to see if amount is an integer
+    if not isinstance(tokenAmt, int):
         return jsonify({"error": "Invalid amount"}), 400
     
-    # Add the tokens to the user's balance
     current_tokens = user.get("tokens", 0)
 
-    # If a user overspends
-    if current_tokens < tokenAmt: # Checks to see if amount is an integer
-        # Halve the balance as a penalty
+    if current_tokens < tokenAmt:
         new_total = current_tokens // 2
+        collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"tokens": new_total}})
+        return jsonify({"error": "Exceeded balance, token balance halved", "new_balance": new_total}), 400
 
-        # Update the user's token balance in the database
-        db.users.update_one({"_id": ObjectId(user_id)}, {"$set": {"tokens":new_total}})
-        return jsonify({"error": "Exceeded balance, token balance halved", "new_balance" : new_total}), 400
-    
-    # Otherwise subtract tokens from the balance
     new_total = current_tokens - tokenAmt
-
-    # Update the user's token balance in the database
     collection.update_one({"_id": ObjectId(user_id)}, {"$set": {"tokens": new_total}})
 
     return jsonify({"message": "Tokens spent", "new_balance": new_total}), 200
