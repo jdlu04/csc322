@@ -18,6 +18,7 @@ db = client["TIFIdb"]
 users_col = db["users"] # temporarily using since there are 2 DBs for users?
 token_col = db["tokens"]
 text_col = db["textupload"] # temp db for holding uploaded LLM text -> will be cleaning/updating
+save_col = db["save_text"]  # temp db name for saving text -> NEED TO FOLLOW UP W. YARED FOR NAME
 
 # CRUD:
 # POST --> 200, 400

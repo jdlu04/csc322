@@ -34,6 +34,9 @@ export default function page() {
       const result = await response.json();
 
       if (response.ok) {
+        const token = result.access_token;
+        localStorage.setItem("token", token);
+        
         if (userType == "Free User") {
           router.push("/free");
         } else if (userType == "Paid User") {

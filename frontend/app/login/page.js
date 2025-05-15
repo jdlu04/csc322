@@ -30,6 +30,10 @@ export default function page() {
 
       if (response.ok) {
         console.log("Login successful:", result.user);
+        
+        const token = result.access_token;
+        localStorage.setItem("token", token);
+
         if (result.user.userType === "Free User") {
           router.push("/free");
         } else if (result.user.userType === "Paid User") {
