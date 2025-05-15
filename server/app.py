@@ -15,7 +15,13 @@ load_dotenv()
 app = Flask(__name__)
 
 # gotta allow cors to support frontend URL
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}}, supports_credentials=True)
+CORS(
+    app,
+    origins=["http://localhost:3000"],
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    expose_headers=["Authorization"]
+)
 
 # JWT secret key
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')

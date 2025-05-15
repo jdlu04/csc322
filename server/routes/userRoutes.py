@@ -195,7 +195,7 @@ def collab():
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
 
-## FILES Endpoints
+### FILES Endpoints ###
 @user_bp.route('/files', methods=['GET'])
 @jwt_required()
 def files():
