@@ -19,8 +19,7 @@ export default function Layout({ children }) {
         <Link href="/paid">Home</Link>
         <Link href="/paid/file">Files</Link>
         <Link href="/paid/token">Tokens</Link>
-
-
+        
         <button onClick={handleLogout} className=" text-white px-4 py-2 rounded">
           Logout
         </button>
