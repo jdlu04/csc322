@@ -34,7 +34,7 @@ client = MongoClient(mongoURL)
 db = client["TIFIdb"]
 
 collection = db["users"]
-file_text_col = db["savetexts"]
+text_col = db["textupload"]
 
 ##CRUD: 
 ## POST --> 200, 400
@@ -194,7 +194,8 @@ def collab():
 
     except PyMongoError as e:
         return jsonify({"error": "Database error", "details": str(e)}), 500
-    
+
+### FILES Endpoints ###
 @user_bp.route('/files', methods=['GET'])
 @jwt_required()
 def files():
@@ -203,7 +204,7 @@ def files():
     try:
         user_obj_id = ObjectId(user_id)
 
-        files = list(file_text_col.find({
+        files = list(text_col.find({
             "$or": [
                 {"owner_id": user_obj_id},
                 {"collaborators": user_obj_id}
@@ -239,11 +240,12 @@ def files_share():
         "file_name": file_name,
         "owner_id": ObjectId(owner_id),
         "content": content or "",
-        "collaborators": []
+        "collaborators": [],
+        "pending_invites": []
     }
 
     try:
-        result = file_text_col.insert_one(file_doc)
+        result = text_col.insert_one(file_doc)
         return jsonify({
             "message": "File shared!",
             "file_id": str(result.inserted_id)
@@ -271,7 +273,7 @@ def invite_response():
         file_obj_id = ObjectId(file_id)
         user_obj_id = ObjectId(user_id)
 
-        file = files_collection.find_one({"_id": file_obj_id})
+        file = text_col.find_one({"_id": file_obj_id})
         if not file:
             return jsonify({"error": "File not found"}), 404
         
@@ -288,9 +290,90 @@ def invite_response():
             update = {"$pull": {"pending_invites": user_obj_id}}
             message = "Invite rejected"
 
-        files_collection.update_one({"_id": file_obj_id}, update)
+        text_col.update_one({"_id": file_obj_id}, update)
 
         return jsonify({"message": message}), 200
 
     except Exception as e:
         return jsonify({"error": "Something went wrong", "details": str(e)}), 500
+    
+@user_bp.route('/save-file', methods=['POST'])
+def saveFile():
+    data = request.get_json()
+    username = data['username']
+    text = data['text']
+
+    if not data or 'username' not in data:
+        return jsonify({"Error":"Username required"}), 400
+
+    user = users_col.find_one({"username": username})
+    if not user:
+        return jsonify({"Error":"Username not found"}), 404
+    
+    if not text:
+        return jsonify({"Error":"Text required"}), 400
+
+    if user.get("userType") != "Paid User":
+        return jsonify({"Error": "Access restricted to paid users"}), 403
+    
+    token_count = len(re.findall(r'\S+', text))
+    available_tokens = user.get("tokens", 0)
+    remaining_tokens = available_tokens - token_count
+    
+    if remaining_tokens < 5:
+        return jsonify({"Error":"Not enough tokens in balance"}), 403
+    
+    new_bal = remaining_tokens - 5
+
+    users_col.update_one(
+        {"_id": user["_id"]}, 
+        {"$set": {"tokens": new_bal}}
+    )
+
+    text_doc = {
+        "userId": user["_id"],
+        "username": user["username"],
+        "text": text,
+        "owner_id": user["_id"],
+        "collaborators": [],
+        "file_name": "Untitled Document"
+    }
+
+    text_col.insert_one(text_doc)
+
+    return jsonify({ 
+        "message": "Text document created", 
+        "userId": str(user["_id"]), 
+        "remainingTokens": new_bal
+    }), 201
+
+
+## user statistics endpoint
+@user_bp.route('/stats', methods=["GET"])
+@jwt_required()
+def user_stat_history():
+    user_id = get_jwt_identity()
+
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    user = collection.find_one({"_id": ObjectId(user_id)})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user_type = user.get("userType", "Free User")
+
+    if user_type == "Paid User":
+        stats = {
+            "tokensUsed": user.get("tokensUsed", 0),
+            "tokensAvailable": user.get("tokens", 0),
+            "correctionsMade": user.get("correctionsMade", 0)
+        }
+    else:
+        stats = {
+            "message": "Upgrade to a paid account to view full statistics.",
+            "tokensAvailable": user.get("tokens", 0)
+        }
+
+    return jsonify(stats), 200
