@@ -17,8 +17,9 @@ collection = db["users"]
 
 # Display Token Balance
 @tokens_bp.route("/api/tokens", methods=["GET"])
+@jwt_required()
 def get_token_balance():
-    user_id = session.get("user_id")  # or JWT logic
+    user_id = get_jwt_identity()
     if not user_id:
         return jsonify({"error": "Not logged in"}), 401
 
