@@ -160,7 +160,6 @@ def llm_approve():
     diffs = get_word_diffs(original, corrected)
 
     return jsonify(diffs), 200
-
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
 # @correction_bp.route('/llm-correct/reject', methods=['POST'])
 
