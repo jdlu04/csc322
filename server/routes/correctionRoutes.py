@@ -19,6 +19,7 @@ users_col = db["users"] # temporarily using since there are 2 DBs for users?
 ##token_col = db["tokens"]
 text_col = db["textupload"] # temp db for holding uploaded LLM text -> will be cleaning/updating
 save_col = db["save_text"]  # temp db name for saving text -> NEED TO FOLLOW UP W. YARED FOR NAME
+llm_col = db["llm_responses"]   # temp db just for holding llm responses
 
 # CRUD:
 # POST --> 200, 400
@@ -41,7 +42,7 @@ def text():
     if not data or 'username' not in data:
         return jsonify({"Error":"Username required"}), 400
 
-    user = token_col.find_one({"username":username})
+    user = users_col.find_one({"username":username})
     if not user:
         return jsonify({"Error":"User not found"}), 404
     if 'text' not in data:
@@ -49,8 +50,8 @@ def text():
     
     # Get the word-token conversion
     token_count = len(re.findall(r'\S+', input_text))
-    # Check token_col db for the user's tokenBalance
-    avaliable_tokens = user.get("tokenBalance", 0)
+    # Check user_col db for the user's tokens
+    avaliable_tokens = user.get("tokens", 0)
     # Return _id for the user -> unique identifier; need to convert to string
     user['_id'] = str(user['_id'])
 
@@ -73,50 +74,85 @@ def text():
 # Endpoint for sending text to LLM and returns corrections for review
 @correction_bp.route('/llm-correct', methods=['POST'])
 def review_text():
-    data = request.json
+    data = request.get_json()
+    username = data.get("username")
+    text = data.get("text")
     # CONSIDERING ADDING USERNAME SO IT MATCHES THE RESULTING TEXTUPLOAD DB STUFF
     # username = data['username']
-    text = data.get("text")
+    if not data or 'username' not in data:
+        return jsonify({"Error":"Username required"}), 400
+    
+    user = users_col.find_one({"username":username})
+    if not user:
+        return jsonify({"Error":"User not found"}), 404  
 
     if not text:
         return jsonify({"Error":"Text required"}), 400
     result = run_editor(text)
+
+    original = result.get("original")
+    corrected = result.get("corrected")
+
+    text = {
+        "userId":user["_id"],
+        "username":user["username"],
+        "original":original,
+        "corrected":corrected
+    }
+
+    llm_col.insert_one(text)
 
     return jsonify(result), 200
 
 # Endpoint for Accepting a specific correction (deducted 1 token)
 @correction_bp.route('/llm-correct/accept', methods=['POST'])
 def llm_accept():
-    data = request.json
-    # May not need but in case want to return user specific response:
-    # username = data.get["username"]
-    # Assuming you have the resulting JSON from /llm-correct:
-    original = data.get("original", "")
-    corrected = data.get("corrected", "")
-    decisions = data.get("decisions", [])
+    data = request.get_json()
+    username = data.get("username")
+    text = data.get("text")
+    updated_text = data.get("updated")
 
-    # original_words = original_text.split()
-    # corrected_words = corrected_text.split()
+    # Logic: get username, corrected text field, and text to update the corrected text inside the llm-responses
+    if not data or 'username' not in data:
+        return jsonify({"Error":"Username required"}), 400
+        
+    user = users_col.find_one({"username":username})
+    if not user:
+        return jsonify({"Error":"User not found"}), 404
     
-    if not original or corrected:
-        return jsonify({"Error":"Missing text"}), 400
-    # Still trying to figure out the implementation -> thinking of using difflib to get the differences
-    # And then using decisions array as what the resulting text should be 
-    # Basically building a "final" text from the accepted changes -> reject would be the opposite
-
-    final_text = "i built it with my hopes and dreams"
-
-
-    final_text = {
-        "original": original,
-        "corrected": corrected,
-        "final": final_text
-    }
-    pass
+    # Get the user tokens amt for deduction
+    user_tokens = user.get("tokens", 0)
+    if user_tokens <= 0:
+        return jsonify({"Error":"Insufficient tokens"}), 403
     
+    llm_doc = llm_col.find_one({
+        "username":username,
+        "corrected":text
+    })
+
+    # Check for if the 'corrected' text matches
+    if not llm_doc:
+        return jsonify({"Error": "Original corrected text not found"}), 404
+
+    result = llm_col.update_one(
+        {"_id": llm_doc["_id"]},
+        {"$set": {"corrected": updated_text}}
+    )
+
+    if result.modified_count == 1:
+        token_update = users_col.update_one(
+            {"_id":user["_id"]}, 
+            {"$inc":{"tokens":-1}}
+        )
+        return jsonify({
+            "Success": "Text Updated",
+            "remaining_tokens":user_tokens-1
+            }), 200
+    else:
+        return jsonify({"Error": "Update failed or no change detected"}), 500
 
 # Endpoint for Rejecting a specific correction, submitting a reason for super user to review
-#@correction_bp.route('/llm-correct/reject', methods=['POST'])
+# @correction_bp.route('/llm-correct/reject', methods=['POST'])
 
 # Endpoint for saving wrongly flagged word as "correct" --> ?
 # @correction_bp.route('/llm-correction/save-as-correct', methods=['POST'])
