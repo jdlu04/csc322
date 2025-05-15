@@ -2,7 +2,7 @@ import React from "react";
 
 export default function Statisics() {
   return (
-    <div className="h-20 w-3/4 mb-5 text-textGrey">
+    <div className="h-20 w-11/12 mb-5 text-textGrey">
       <div className="h-10 w-full border-l border-r border-t rounded-t-lg bg-white">
         <p>Statistics</p>
       </div>
